@@ -12,6 +12,7 @@
     "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
+    "@zumer/snapdom": "^1.7.1",
     "gl-react": "^5.2.0",
     "gl-react-dom": "^5.2.1",
     "leva": "^0.10.0",

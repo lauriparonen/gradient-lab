@@ -4,12 +4,15 @@ import { useControls } from 'leva'
 import { GrainyGradientShader } from './shaders'
 import { hueToRGB } from './utils'
 import { useAnimationFrame } from './hooks/useAnimationFrame'
+import { useExport } from './hooks/useExport'
+import { ExportButton } from './components/ExportButton'
 
 const CANVAS_WIDTH = 400
 const CANVAS_HEIGHT = 600
 
 export default function App() {
   const time = useAnimationFrame()
+  const { surfaceRef, isExporting, exportToPNG } = useExport()
   
   const { hue1, hue2, grain } = useControls({
     hue1: { value: 200, min: 0, max: 360 },
@@ -19,10 +22,15 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen w-full flex items-center justify-center"
+      className="min-h-screen w-full flex flex-col items-center justify-center gap-4"
       style={{ backgroundColor: '#000000' }}
     >
-      <Surface width={CANVAS_WIDTH} height={CANVAS_HEIGHT}>
+      <Surface 
+        width={CANVAS_WIDTH} 
+        height={CANVAS_HEIGHT} 
+        ref={surfaceRef}
+        webglContextAttributes={{ preserveDrawingBuffer: true }}
+      >
         <Node
           shader={GrainyGradientShader.GrainyGrad}
           uniforms={{
@@ -33,6 +41,8 @@ export default function App() {
           }}
         />
       </Surface>
+      
+      <ExportButton onExport={exportToPNG} isExporting={isExporting} />
     </div>
   )
 }
