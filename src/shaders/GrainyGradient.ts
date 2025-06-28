@@ -20,6 +20,7 @@ export const GrainyGradientShader = Shaders.create({
       uniform float grain;
       uniform float scale;
       uniform float speed;
+      uniform float detail;
 
       // Define mod289 first
       vec3 mod289(vec3 x) { 
@@ -63,18 +64,26 @@ export const GrainyGradientShader = Shaders.create({
         return 130.0 * dot(m, g);
       }
 
-      // Fractal Brownian Motion for organic complexity
+      // High-resolution Fractal Brownian Motion
       float fbm(vec2 p) {
         float value = 0.0;
         float amplitude = 0.5;
         float frequency = 1.0;
         
-        for(int i = 0; i < 4; i++) {
+        // Increased octaves for more detail
+        for(int i = 0; i < 6; i++) {
           value += amplitude * snoise(p * frequency);
           amplitude *= 0.5;
-          frequency *= 2.0;
+          frequency *= 2.0 + detail * 0.5; // Detail affects frequency progression
         }
         return value;
+      }
+      
+      // High-frequency detail layer
+      float detailNoise(vec2 p) {
+        float highFreq = snoise(p * 20.0 * detail);
+        float midFreq = snoise(p * 8.0 * detail) * 0.5;
+        return (highFreq + midFreq) * 0.3;
       }
 
       void main() {
@@ -86,10 +95,10 @@ export const GrainyGradientShader = Shaders.create({
         vec2 center2 = vec2(0.7 + 0.1 * cos(t * 0.8), 0.6 + 0.1 * sin(t * 0.6));
         vec2 center3 = vec2(0.5 + 0.15 * sin(t * 0.4), 0.2 + 0.1 * cos(t * 0.9));
         
-        // Distance to each blob center with noise distortion
-        float noise1 = fbm(pos + t * 0.1);
-        float noise2 = fbm(pos * 1.5 + t * 0.15);
-        float noise3 = fbm(pos * 0.8 + t * 0.05);
+        // Distance to each blob center with enhanced noise distortion
+        float noise1 = fbm(pos + t * 0.1) + detailNoise(pos + t * 0.05) * 0.5;
+        float noise2 = fbm(pos * 1.5 + t * 0.15) + detailNoise(pos * 1.2 + t * 0.08) * 0.4;
+        float noise3 = fbm(pos * 0.8 + t * 0.05) + detailNoise(pos * 0.9 + t * 0.12) * 0.6;
         
         float dist1 = distance(uv, center1) + noise1 * 0.2;
         float dist2 = distance(uv, center2) + noise2 * 0.15;
@@ -106,8 +115,9 @@ export const GrainyGradientShader = Shaders.create({
         col = mix(col, colorC, influence2);
         col = mix(col, colorA * 0.8 + colorB * 0.2, influence3);
         
-        // Add subtle grain
+        // Enhanced grain with detail
         float grainNoise = fbm(uv * 50.0 + t) * grain * 0.1;
+        grainNoise += detailNoise(uv * 80.0 + t) * grain * 0.05;
         col += grainNoise;
         
         gl_FragColor = vec4(col, 1.0);
