@@ -71,17 +71,17 @@ export const GrainyGradientShader = Shaders.create({
         float frequency = 1.0;
         
         // Increased octaves for more detail
-        for(int i = 0; i < 6; i++) {
+        for(int i = 0; i < 8; i++) {
           value += amplitude * snoise(p * frequency);
           amplitude *= 0.5;
-          frequency *= 2.0 + detail * 0.5; // Detail affects frequency progression
+          frequency *= 3.0 + detail * 0.5; // Detail affects frequency progression
         }
         return value;
       }
       
       // High-frequency detail layer
       float detailNoise(vec2 p) {
-        float highFreq = snoise(p * 20.0 * detail);
+        float highFreq = snoise(p * 220.0 * detail);
         float midFreq = snoise(p * 8.0 * detail) * 0.5;
         return (highFreq + midFreq) * 0.3;
       }
