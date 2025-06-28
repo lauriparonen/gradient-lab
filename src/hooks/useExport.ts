@@ -1,12 +1,10 @@
-import { useCallback, useState, useRef } from 'react'
+import { useCallback, useState } from 'react'
 
 export const useExport = () => {
-  const [surfaceElement, setSurfaceElement] = useState<any>(null)
   const [isExporting, setIsExporting] = useState(false)
 
   const surfaceRef = useCallback((node: any) => {
     if (node !== null) {
-      setSurfaceElement(node)
       console.log('Surface ref set:', node)
       console.log('Surface ref type:', typeof node)
       console.log('Surface ref constructor:', node.constructor.name)
