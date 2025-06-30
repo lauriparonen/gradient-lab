@@ -43,6 +43,9 @@ export default function App() {
     hue1, 
     hue2, 
     hue3, 
+    brightness1,
+    brightness2,
+    brightness3,
     grain, 
     scale, 
     speed, 
@@ -74,9 +77,12 @@ export default function App() {
     },
     
     // Colors
-    hue1: { value: 200, min: 0, max: 360, step: 1 },
-    hue2: { value: 320, min: 0, max: 360, step: 1 },
-    hue3: { value: 60, min: 0, max: 360, step: 1 },
+    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'Color 1 Hue' },
+    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 1 Brightness' },
+    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'Color 2 Hue' },
+    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 2 Brightness' },
+    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'Color 3 Hue' },
+    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 3 Brightness' },
     
     // Organic complexity controls
     scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'Noise Scale' },
@@ -174,9 +180,9 @@ export default function App() {
             shader={GrainyGradientShader.GrainyGrad}
             uniforms={{
               time,
-              colorA: hueToRGB(hue1),
-              colorB: hueToRGB(hue2),
-              colorC: hueToRGB(hue3),
+              colorA: hueToRGB(hue1, brightness1),
+              colorB: hueToRGB(hue2, brightness2),
+              colorC: hueToRGB(hue3, brightness3),
               grain,
               scale,
               speed,

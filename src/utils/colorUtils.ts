@@ -26,6 +26,6 @@ export const hsv2rgb = (h: number, s: number, v: number): [number, number, numbe
  * @param hue Hue value in degrees (0-360)
  * @returns RGB values as [r, g, b] array
  */
-export const hueToRGB = (hue: number): [number, number, number] => {
-  return hsv2rgb(hue / 360, 0.6, 1.0);
+export const hueToRGB = (hue: number, brightness: number = 1.0): [number, number, number] => {
+  return hsv2rgb(hue / 360, 0.6, brightness);
 } 
