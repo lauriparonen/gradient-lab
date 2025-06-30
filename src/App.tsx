@@ -162,7 +162,7 @@ export default function App() {
     >
       <div 
         onMouseMove={handleMouseMove}
-        className="relative border border-gray-700 rounded-lg overflow-hidden"
+        className="relative rounded-lg overflow-hidden"
         style={{ 
           width: canvasDimensions.width, 
           height: canvasDimensions.height,
