@@ -20,7 +20,6 @@ export const GrainyGradientShader = Shaders.create({
       uniform float grain;
       uniform float scale;
       uniform float speed;
-      uniform float detail;
 
       // Define mod289 first
       vec3 mod289(vec3 x) { 
