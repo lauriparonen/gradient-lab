@@ -51,7 +51,12 @@ export default function App() {
     speed, 
     resolution,
     customWidth,
-    customHeight
+    customHeight,
+    rippleSpeed,
+    rippleWidth,
+    rippleLifetime,
+    rippleStrength,
+    rippleFrequency
   } = useControls({
     // Resolution controls
     resolution: { 
@@ -89,7 +94,14 @@ export default function App() {
     speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
     
     // Grain
-    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' }
+    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' },
+    
+    // Ripple effect controls
+    rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
+    rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
+    rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
+    rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
+    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' }
   })
 
   // Get current canvas dimensions
@@ -189,7 +201,12 @@ export default function App() {
               mouse: mousePos,
               trailPositions,
               trailAges,
-              resolution: [canvasDimensions.width, canvasDimensions.height]
+              resolution: [canvasDimensions.width, canvasDimensions.height],
+              rippleSpeed,
+              rippleWidth,
+              rippleLifetime,
+              rippleStrength,
+              rippleFrequency
             }}
           />
         </Surface>

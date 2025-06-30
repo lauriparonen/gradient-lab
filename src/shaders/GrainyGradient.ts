@@ -24,6 +24,11 @@ export const GrainyGradientShader = Shaders.create({
       uniform float trailPositions[16]; // 8 points * 2 coordinates
       uniform float trailAges[8];
       uniform vec2 resolution;
+      uniform float rippleSpeed;
+      uniform float rippleWidth;
+      uniform float rippleLifetime;
+      uniform float rippleStrength;
+      uniform float rippleFrequency;
 
       // Define mod289 first
       vec3 mod289(vec3 x) { 
@@ -107,21 +112,20 @@ export const GrainyGradientShader = Shaders.create({
           float distance = distance(uv, trailPos);
           
           // Create expanding ripples based on age
-          float rippleRadius = age * 0.4; // Ripples expand over time
-          float rippleWidth = 0.08;
+          float rippleRadius = age * rippleSpeed; // Use uniform instead of hardcoded 0.4
           
           // Calculate ripple intensity - peaks when distance matches ripple radius
           float rippleIntensity = 1.0 - smoothstep(0.0, rippleWidth, abs(distance - rippleRadius));
           
           // Fade the ripple over time
-          float ageFade = 1.0 - smoothstep(0.0, 3.0, age);
+          float ageFade = 1.0 - smoothstep(0.0, rippleLifetime, age);
           
-          float rippleStrength = rippleIntensity * ageFade * 0.3;
-          totalRippleEffect += rippleStrength;
+          float rippleStrengthValue = rippleIntensity * ageFade * rippleStrength;
+          totalRippleEffect += rippleStrengthValue;
           
           // Add radial distortion from each ripple
           vec2 rippleDirection = normalize(uv - trailPos);
-          totalDistortion += rippleDirection * rippleStrength * 0.05 * sin(t * 3.0 + distance * 20.0);
+          totalDistortion += rippleDirection * rippleStrengthValue * 0.05 * sin(t * 3.0 + distance * rippleFrequency);
         }
         
         // Apply ripple distortion to UV coordinates
