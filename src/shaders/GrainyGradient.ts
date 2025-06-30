@@ -20,6 +20,9 @@ export const GrainyGradientShader = Shaders.create({
       uniform float grain;
       uniform float scale;
       uniform float speed;
+      uniform vec2 mouse;
+      uniform float trailPositions[16]; // 8 points * 2 coordinates
+      uniform float trailAges[8];
 
       // Define mod289 first
       vec3 mod289(vec3 x) { 
@@ -87,25 +90,89 @@ export const GrainyGradientShader = Shaders.create({
         vec2 pos = uv * scale;
         float t = time * speed;
         
-        // Define blob centers with smoother movement
-        vec2 center1 = vec2(0.3 + 0.15 * sin(t * 0.3), 0.4 + 0.12 * cos(t * 0.25));
-        vec2 center2 = vec2(0.7 + 0.12 * cos(t * 0.35), 0.6 + 0.15 * sin(t * 0.28));
-        vec2 center3 = vec2(0.5 + 0.18 * sin(t * 0.2), 0.2 + 0.14 * cos(t * 0.32));
+        // Calculate combined trail ripple effects
+        float totalRippleEffect = 0.0;
+        vec2 totalDistortion = vec2(0.0);
         
-        // Gentler noise distortion for smooth organic shapes
-        float flow1 = flowNoise(pos + t * 0.05);
-        float flow2 = flowNoise(pos * 1.2 + t * 0.08);
-        float flow3 = flowNoise(pos * 0.9 + t * 0.06);
+        for (int i = 0; i < 8; i++) {
+          vec2 trailPos = vec2(trailPositions[i * 2], trailPositions[i * 2 + 1]);
+          float age = trailAges[i];
+          
+          // Skip invalid positions
+          if (trailPos.x < 0.0 || age > 10.0) continue;
+          
+          float distance = distance(uv, trailPos);
+          
+          // Create expanding ripples based on age
+          float rippleRadius = age * 0.4; // Ripples expand over time
+          float rippleWidth = 0.08;
+          
+          // Calculate ripple intensity - peaks when distance matches ripple radius
+          float rippleIntensity = 1.0 - smoothstep(0.0, rippleWidth, abs(distance - rippleRadius));
+          
+          // Fade the ripple over time
+          float ageFade = 1.0 - smoothstep(0.0, 3.0, age);
+          
+          float rippleStrength = rippleIntensity * ageFade * 0.3;
+          totalRippleEffect += rippleStrength;
+          
+          // Add radial distortion from each ripple
+          vec2 rippleDirection = normalize(uv - trailPos);
+          totalDistortion += rippleDirection * rippleStrength * 0.05 * sin(t * 3.0 + distance * 20.0);
+        }
         
-        // Smoother distance calculations
-        float dist1 = distance(uv, center1) + flow1 * 0.08;
-        float dist2 = distance(uv, center2) + flow2 * 0.06;
-        float dist3 = distance(uv, center3) + flow3 * 0.1;
+        // Apply ripple distortion to UV coordinates
+        vec2 rippleDistortedUV = uv + totalDistortion;
         
-        // Create very smooth influence zones with larger blend areas
-        float influence1 = 1.0 - smoothstep(0.0, 0.8, dist1);
-        float influence2 = 1.0 - smoothstep(0.0, 0.7, dist2);
-        float influence3 = 1.0 - smoothstep(0.0, 0.9, dist3);
+        // Current mouse effect (reduced since we have trail effects now)
+        float mouseDistance = distance(uv, mouse);
+        float mouseEffect = (1.0 - smoothstep(0.0, 0.4, mouseDistance)) * 0.5;
+        
+        // Create additional distortion around current mouse
+        vec2 mouseDirection = normalize(uv - mouse);
+        float distortionStrength = mouseEffect * 0.08;
+        vec2 currentMouseDistortion = mouseDirection * distortionStrength * sin(t * 2.0 + mouseDistance * 15.0);
+        
+        // Combine all distortions
+        vec2 finalDistortedUV = rippleDistortedUV + currentMouseDistortion;
+        
+        // Mouse influence on blob centers
+        float mouseInfluence = 0.6;
+        vec2 mouseOffset = (mouse - 0.5) * mouseInfluence;
+        
+        // Add trail ripple influence to blob movement
+        vec2 trailInfluence = totalDistortion * 2.0;
+        
+        // Define blob centers with mouse and trail influence
+        vec2 center1 = vec2(0.3 + 0.15 * sin(t * 0.3), 0.4 + 0.12 * cos(t * 0.25)) + mouseOffset * 1.2 + trailInfluence;
+        vec2 center2 = vec2(0.7 + 0.12 * cos(t * 0.35), 0.6 + 0.15 * sin(t * 0.28)) + mouseOffset * -1.0 + trailInfluence * 0.8;
+        vec2 center3 = vec2(0.5 + 0.18 * sin(t * 0.2), 0.2 + 0.14 * cos(t * 0.32)) + mouseOffset * 1.5 + trailInfluence * 1.2;
+        
+        // Add warping with combined effects
+        float combinedEffect = mouseEffect + totalRippleEffect;
+        vec2 warpedUV1 = finalDistortedUV + combinedEffect * 0.08 * sin(finalDistortedUV * 12.0 + t);
+        vec2 warpedUV2 = finalDistortedUV + combinedEffect * 0.06 * cos(finalDistortedUV * 10.0 + t * 1.2);
+        vec2 warpedUV3 = finalDistortedUV + combinedEffect * 0.1 * sin(finalDistortedUV * 15.0 + t * 0.8);
+        
+        // Enhanced flow noise
+        float flow1 = flowNoise(pos + t * 0.05 + mouse * 0.6) * (1.0 + combinedEffect * 1.5);
+        float flow2 = flowNoise(pos * 1.2 + t * 0.08 + mouse * 0.4) * (1.0 + combinedEffect * 1.2);
+        float flow3 = flowNoise(pos * 0.9 + t * 0.06 + mouse * 0.8) * (1.0 + combinedEffect * 1.8);
+        
+        // Distance calculations using warped UV coordinates
+        float dist1 = distance(warpedUV1, center1) + flow1 * 0.12;
+        float dist2 = distance(warpedUV2, center2) + flow2 * 0.10;
+        float dist3 = distance(warpedUV3, center3) + flow3 * 0.15;
+        
+        // Add shape deformation based on combined effects
+        dist1 *= (1.0 + combinedEffect * 0.4 * sin(atan(warpedUV1.y - center1.y, warpedUV1.x - center1.x) * 3.0 + t));
+        dist2 *= (1.0 + combinedEffect * 0.3 * cos(atan(warpedUV2.y - center2.y, warpedUV2.x - center2.x) * 4.0 + t * 1.3));
+        dist3 *= (1.0 + combinedEffect * 0.5 * sin(atan(warpedUV3.y - center3.y, warpedUV3.x - center3.x) * 5.0 + t * 0.7));
+        
+        // Create influence zones
+        float influence1 = 1.0 - smoothstep(0.0, 0.8 * (1.0 + combinedEffect * 0.3), dist1);
+        float influence2 = 1.0 - smoothstep(0.0, 0.7 * (1.0 + combinedEffect * 0.2), dist2);
+        float influence3 = 1.0 - smoothstep(0.0, 0.9 * (1.0 + combinedEffect * 0.4), dist3);
         
         // Smooth color mixing
         vec3 col = colorA;
