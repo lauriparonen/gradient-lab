@@ -64,61 +64,59 @@ export const GrainyGradientShader = Shaders.create({
         return 130.0 * dot(m, g);
       }
 
-      // High-resolution Fractal Brownian Motion
+      // Smoother Fractal Brownian Motion with fewer octaves
       float fbm(vec2 p) {
         float value = 0.0;
         float amplitude = 0.5;
         float frequency = 1.0;
         
-        // Increased octaves for more detail
-        for(int i = 0; i < 8; i++) {
+        // Reduced octaves for smoother, less detailed noise
+        for(int i = 0; i < 6; i++) {
           value += amplitude * snoise(p * frequency);
-          amplitude *= 0.5;
-          frequency *= 3.0 + detail * 0.5; // Detail affects frequency progression
+          amplitude *= 0.6; // Gentler amplitude decay
+          frequency *= 2.0; // Less aggressive frequency progression
         }
         return value;
       }
       
-      // High-frequency detail layer
-      float detailNoise(vec2 p) {
-        float highFreq = snoise(p * 220.0 * detail);
-        float midFreq = snoise(p * 8.0 * detail) * 0.5;
-        return (highFreq + midFreq) * 0.3;
+      // Gentle flow distortion instead of high-frequency detail
+      float flowNoise(vec2 p) {
+        return snoise(p * 2.0) * 0.1 + snoise(p * 0.5) * 0.2;
       }
 
       void main() {
         vec2 pos = uv * scale;
         float t = time * speed;
         
-        // Define blob centers with time-based movement
-        vec2 center1 = vec2(0.3 + 0.1 * sin(t * 0.7), 0.4 + 0.1 * cos(t * 0.5));
-        vec2 center2 = vec2(0.7 + 0.1 * cos(t * 0.8), 0.6 + 0.1 * sin(t * 0.6));
-        vec2 center3 = vec2(0.5 + 0.15 * sin(t * 0.4), 0.2 + 0.1 * cos(t * 0.9));
+        // Define blob centers with smoother movement
+        vec2 center1 = vec2(0.3 + 0.15 * sin(t * 0.3), 0.4 + 0.12 * cos(t * 0.25));
+        vec2 center2 = vec2(0.7 + 0.12 * cos(t * 0.35), 0.6 + 0.15 * sin(t * 0.28));
+        vec2 center3 = vec2(0.5 + 0.18 * sin(t * 0.2), 0.2 + 0.14 * cos(t * 0.32));
         
-        // Distance to each blob center with enhanced noise distortion
-        float noise1 = fbm(pos + t * 0.1) + detailNoise(pos + t * 0.05) * 0.5;
-        float noise2 = fbm(pos * 1.5 + t * 0.15) + detailNoise(pos * 1.2 + t * 0.08) * 0.4;
-        float noise3 = fbm(pos * 0.8 + t * 0.05) + detailNoise(pos * 0.9 + t * 0.12) * 0.6;
+        // Gentler noise distortion for smooth organic shapes
+        float flow1 = flowNoise(pos + t * 0.05);
+        float flow2 = flowNoise(pos * 1.2 + t * 0.08);
+        float flow3 = flowNoise(pos * 0.9 + t * 0.06);
         
-        float dist1 = distance(uv, center1) + noise1 * 0.2;
-        float dist2 = distance(uv, center2) + noise2 * 0.15;
-        float dist3 = distance(uv, center3) + noise3 * 0.25;
+        // Smoother distance calculations
+        float dist1 = distance(uv, center1) + flow1 * 0.08;
+        float dist2 = distance(uv, center2) + flow2 * 0.06;
+        float dist3 = distance(uv, center3) + flow3 * 0.1;
         
-        // Create smooth influence zones
-        float influence1 = 1.0 - smoothstep(0.0, 0.6, dist1);
-        float influence2 = 1.0 - smoothstep(0.0, 0.5, dist2);
-        float influence3 = 1.0 - smoothstep(0.0, 0.7, dist3);
+        // Create very smooth influence zones with larger blend areas
+        float influence1 = 1.0 - smoothstep(0.0, 0.8, dist1);
+        float influence2 = 1.0 - smoothstep(0.0, 0.7, dist2);
+        float influence3 = 1.0 - smoothstep(0.0, 0.9, dist3);
         
-        // Mix colors based on influences
+        // Smooth color mixing
         vec3 col = colorA;
         col = mix(col, colorB, influence1);
         col = mix(col, colorC, influence2);
-        col = mix(col, colorA * 0.8 + colorB * 0.2, influence3);
+        col = mix(col, colorA * 0.7 + colorB * 0.3, influence3);
         
-        // Enhanced grain with detail
-        float grainNoise = fbm(uv * 50.0 + t) * grain * 0.1;
-        grainNoise += detailNoise(uv * 80.0 + t) * grain * 0.05;
-        col += grainNoise;
+        // Much subtler grain that doesn't interfere with smooth forms
+        float subtleGrain = snoise(uv * 300.0 + t * 0.5) * grain * 0.3;
+        col += subtleGrain;
         
         gl_FragColor = vec4(col, 1.0);
       }
