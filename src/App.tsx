@@ -10,17 +10,17 @@ import { ExportButton } from './components/ExportButton'
 
 // Resolution presets
 const RESOLUTION_PRESETS = {
-  'Mobile Portrait': { width: 375, height: 667 },
-  'Mobile Landscape': { width: 667, height: 375 },
-  'Desktop Small': { width: 800, height: 600 },
-  'Desktop Medium': { width: 1200, height: 800 },
-  'Desktop Large': { width: 1920, height: 1080 },
-  'Square Small': { width: 400, height: 400 },
-  'Square Medium': { width: 600, height: 600 },
-  'Square Large': { width: 800, height: 800 },
-  'Instagram Post': { width: 1080, height: 1080 },
-  'Instagram Story': { width: 1080, height: 1920 },
-  'Custom': { width: 400, height: 600 } // Default custom size
+  'mobile portrait': { width: 375, height: 667 },
+  'mobile landscape': { width: 667, height: 375 },
+  'desktop small': { width: 800, height: 600 },
+  'desktop medium': { width: 1200, height: 800 },
+  'desktop large': { width: 1920, height: 1080 },
+  'square small': { width: 400, height: 400 },
+  'square medium': { width: 600, height: 600 },
+  'square large': { width: 800, height: 800 },
+  'instagram post': { width: 1080, height: 1080 },
+  'instagram story': { width: 1080, height: 1920 },
+  'custom': { width: 400, height: 600 } // Default custom size
 } as const
 
 type ResolutionPreset = keyof typeof RESOLUTION_PRESETS
@@ -55,45 +55,45 @@ export default function App() {
   } = useControls({
     // Resolution controls
     resolution: { 
-      value: 'Desktop Small' as ResolutionPreset, 
+      value: 'desktop small' as ResolutionPreset, 
       options: Object.keys(RESOLUTION_PRESETS) as ResolutionPreset[],
-      label: 'Resolution Preset'
+      label: 'resolution preset'
     },
     customWidth: { 
       value: 400, 
       min: 200, 
       max: 2560, 
       step: 1, 
-      label: 'Custom Width',
-      render: (get) => get('resolution') === 'Custom'
+      label: 'custom width',
+      render: (get) => get('resolution') === 'custom'
     },
     customHeight: { 
       value: 600, 
       min: 200, 
       max: 1440, 
       step: 1, 
-      label: 'Custom Height',
-      render: (get) => get('resolution') === 'Custom'
+      label: 'custom height',
+      render: (get) => get('resolution') === 'custom'
     },
     
     // Colors
-    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'Color 1 Hue' },
-    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 1 Brightness' },
-    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'Color 2 Hue' },
-    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 2 Brightness' },
-    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'Color 3 Hue' },
-    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'Color 3 Brightness' },
+    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'color 1 hue' },
+    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 1 brightness' },
+    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'color 2 hue' },
+    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 2 brightness' },
+    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'color 3 hue' },
+    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 3 brightness' },
     
     // Organic complexity controls
-    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'Noise Scale' },
-    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'Animation Speed' },
+    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
+    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
     
     // Grain
-    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01 }
+    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' }
   })
 
   // Get current canvas dimensions
-  const canvasDimensions = resolution === 'Custom' 
+  const canvasDimensions = resolution === 'custom' 
     ? { width: customWidth, height: customHeight }
     : RESOLUTION_PRESETS[resolution]
 
@@ -197,10 +197,10 @@ export default function App() {
       
       <div className="flex flex-col items-center gap-2">
         <div className="text-gray-400 text-sm text-center">
-          <p>{resolution === 'Custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
+          <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
         </div>
         <ExportButton onExport={exportToPNG} isExporting={isExporting} />
-        <p className="text-gray-400 text-sm">Press Ctrl+S to export without moving cursor</p>
+        <p className="text-gray-400 text-sm">press Ctrl+S to export without moving cursor</p>
       </div>
     </div>
   )

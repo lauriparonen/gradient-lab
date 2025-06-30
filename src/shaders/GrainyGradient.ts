@@ -76,8 +76,8 @@ export const GrainyGradientShader = Shaders.create({
         // Reduced octaves for smoother, less detailed noise
         for(int i = 0; i < 6; i++) {
           value += amplitude * snoise(p * frequency);
-          amplitude *= 0.6; // Gentler amplitude decay
-          frequency *= 2.0; // Less aggressive frequency progression
+          amplitude *= 0.6; 
+          frequency *= 2.0; 
         }
         return value;
       }

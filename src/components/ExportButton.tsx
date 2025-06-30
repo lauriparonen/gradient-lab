@@ -25,7 +25,7 @@ export const ExportButton = ({ onExport, isExporting }: ExportButtonProps) => {
         height: '48px'
       }}
     >
-      {isExporting ? 'Exporting...' : 'Export PNG'}
+      {isExporting ? 'exporting...' : 'export PNG'}
     </button>
   )
 } 
