@@ -188,7 +188,8 @@ export default function App() {
               speed,
               mouse: mousePos,
               trailPositions,
-              trailAges
+              trailAges,
+              resolution: [canvasDimensions.width, canvasDimensions.height]
             }}
           />
         </Surface>

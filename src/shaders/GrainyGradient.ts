@@ -23,6 +23,7 @@ export const GrainyGradientShader = Shaders.create({
       uniform vec2 mouse;
       uniform float trailPositions[16]; // 8 points * 2 coordinates
       uniform float trailAges[8];
+      uniform vec2 resolution;
 
       // Define mod289 first
       vec3 mod289(vec3 x) { 
@@ -87,7 +88,9 @@ export const GrainyGradientShader = Shaders.create({
       }
 
       void main() {
-        vec2 pos = uv * scale;
+        // Calculate pixel-based scale to maintain consistent visual density
+        float pixelScale = max(resolution.x, resolution.y) / 800.0; // Base scale for 800px reference
+        vec2 pos = uv * scale * pixelScale;
         float t = time * speed;
         
         // Calculate combined trail ripple effects
@@ -181,7 +184,9 @@ export const GrainyGradientShader = Shaders.create({
         col = mix(col, colorA * 0.7 + colorB * 0.3, influence3);
         
         // Much subtler grain that doesn't interfere with smooth forms
-        float subtleGrain = snoise(uv * 300.0 + t * 0.5) * grain * 0.3;
+        // Scale grain sampling based on actual pixel density
+        float grainScale = pixelScale * 300.0;
+        float subtleGrain = snoise(uv * grainScale + t * 0.5) * grain * 0.3;
         col += subtleGrain;
         
         gl_FragColor = vec4(col, 1.0);
