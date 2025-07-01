@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@zumer/snapdom": "^1.7.1",
-    "gif.js": "^0.2.0",
+    "gifshot": "^0.4.5",
     "gl-react": "^5.2.0",
     "gl-react-dom": "^5.2.1",
     "leva": "^0.10.0",
@@ -27,7 +27,6 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.21",
-    "copy-webpack-plugin": "^13.0.0",
     "eslint": "^9.29.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

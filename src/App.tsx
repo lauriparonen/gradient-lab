@@ -115,9 +115,9 @@ export default function App() {
     rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' },
     
     // GIF export controls
-    gifDuration: { value: 3, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
-    gifFramerate: { value: 15, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
-    gifQuality: { value: 10, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
+    gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
+    gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
+    gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
   })
 
   // Get current canvas dimensions
@@ -236,8 +236,7 @@ export default function App() {
           onExportPNG={exportToPNG}
           onStartGIFRecording={() => startGIFRecording({
             duration: gifDuration,
-            framerate: gifFramerate,
-            quality: gifQuality
+            framerate: gifFramerate
           })}
           onCancelGIFRecording={cancelGIFRecording}
           isExporting={isExporting}
