@@ -34,7 +34,15 @@ interface TrailPoint {
 
 export default function App() {
   const time = useAnimationFrame()
-  const { surfaceRef, isExporting, exportToPNG } = useExport()
+  const { 
+    surfaceRef, 
+    isExporting, 
+    exportToPNG,
+    isRecordingGIF,
+    gifProgress,
+    startGIFRecording,
+    cancelGIFRecording
+  } = useExport()
   const [mousePos, setMousePos] = useState<[number, number]>([0.5, 0.5])
   const trailRef = useRef<TrailPoint[]>([])
   const lastUpdateRef = useRef<number>(0)
@@ -56,7 +64,10 @@ export default function App() {
     rippleWidth,
     rippleLifetime,
     rippleStrength,
-    rippleFrequency
+    rippleFrequency,
+    gifDuration,
+    gifFramerate,
+    gifQuality
   } = useControls({
     // Resolution controls
     resolution: { 
@@ -101,7 +112,12 @@ export default function App() {
     rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
     rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
     rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
-    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' }
+    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' },
+    
+    // GIF export controls
+    gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
+    gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
+    gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
   })
 
   // Get current canvas dimensions
@@ -216,8 +232,20 @@ export default function App() {
         <div className="text-gray-400 text-sm text-center">
           <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
         </div>
-        <ExportButton onExport={exportToPNG} isExporting={isExporting} />
-        <p className="text-gray-400 text-sm">press Ctrl+S to export without moving cursor</p>
+        <ExportButton 
+          onExportPNG={exportToPNG}
+          onStartGIFRecording={() => startGIFRecording({
+            duration: gifDuration,
+            framerate: gifFramerate
+          })}
+          onCancelGIFRecording={cancelGIFRecording}
+          isExporting={isExporting}
+          isRecordingGIF={isRecordingGIF}
+          gifProgress={gifProgress}
+          gifDuration={gifDuration}
+          gifFramerate={gifFramerate}
+        />
+        <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
       </div>
     </div>
   )

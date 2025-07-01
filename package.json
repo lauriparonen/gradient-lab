@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@zumer/snapdom": "^1.7.1",
+    "gifshot": "^0.4.5",
     "gl-react": "^5.2.0",
     "gl-react-dom": "^5.2.1",
     "leva": "^0.10.0",
