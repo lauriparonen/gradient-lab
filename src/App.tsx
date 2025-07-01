@@ -139,9 +139,14 @@ export default function App() {
   }, [exportToPNG])
 
   const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const x = (event.clientX - rect.left) / rect.width
-    const y = 1.0 - (event.clientY - rect.top) / rect.height // Flip Y to match shader coordinates
+    updatePositionFromEvent(event.clientX, event.clientY, event.currentTarget)
+  }
+
+  // Extract position calculation logic for reuse between mouse and touch events
+  const updatePositionFromEvent = (clientX: number, clientY: number, target: HTMLElement) => {
+    const rect = target.getBoundingClientRect()
+    const x = (clientX - rect.left) / rect.width
+    const y = 1.0 - (clientY - rect.top) / rect.height // Flip Y to match shader coordinates
     const newPos: [number, number] = [Math.max(0, Math.min(1, x)), Math.max(0, Math.min(1, y))]
     
     setMousePos(newPos)
@@ -168,6 +173,23 @@ export default function App() {
     }
   }
 
+  // Touch event handlers for mobile support
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault() // Prevent scrolling
+    const touch = event.touches[0]
+    if (touch) {
+      updatePositionFromEvent(touch.clientX, touch.clientY, event.currentTarget)
+    }
+  }
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>) => {
+    event.preventDefault() // Prevent scrolling
+    const touch = event.touches[0]
+    if (touch) {
+      updatePositionFromEvent(touch.clientX, touch.clientY, event.currentTarget)
+    }
+  }
+
   // Prepare trail data for shader
   const trailPositions: number[] = []
   const trailAges: number[] = []
@@ -190,12 +212,15 @@ export default function App() {
     >
       <div 
         onMouseMove={handleMouseMove}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         className="relative rounded-lg overflow-hidden"
         style={{ 
           width: canvasDimensions.width, 
           height: canvasDimensions.height,
           maxWidth: '90vw',
-          maxHeight: '70vh'
+          maxHeight: '70vh',
+          touchAction: 'none'
         }}
       >
         <Surface 
