@@ -236,7 +236,8 @@ export default function App() {
           onExportPNG={exportToPNG}
           onStartGIFRecording={() => startGIFRecording({
             duration: gifDuration,
-            framerate: gifFramerate
+            framerate: gifFramerate,
+            quality: gifQuality
           })}
           onCancelGIFRecording={cancelGIFRecording}
           isExporting={isExporting}

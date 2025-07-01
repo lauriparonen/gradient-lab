@@ -16,6 +16,7 @@ export const useExport = () => {
   const frameCountRef = useRef(0)
   const maxFramesRef = useRef(0)
   const capturedFramesRef = useRef<HTMLCanvasElement[]>([])
+  const gifQualityRef = useRef(15)
 
   const surfaceRef = useCallback((node: any) => {
     if (node !== null) {
@@ -127,7 +128,10 @@ export const useExport = () => {
     const canvas = getCanvas()
     if (!canvas) return
 
-    const { duration = 2, framerate = 10 } = options
+    const { duration = 2, framerate = 10, quality = 15 } = options
+    
+    // Store quality for use in stopGIFRecording
+    gifQualityRef.current = quality
     
     setIsRecordingGIF(true)
     setGifProgress(0)
@@ -135,7 +139,7 @@ export const useExport = () => {
     maxFramesRef.current = Math.floor(duration * framerate)
     capturedFramesRef.current = []
 
-    console.log(`Starting GIF capture: ${maxFramesRef.current} frames at ${framerate}fps`)
+    console.log(`Starting GIF capture: ${maxFramesRef.current} frames at ${framerate}fps, quality: ${quality}`)
     
     // Small delay to ensure canvas is ready
     await new Promise(resolve => setTimeout(resolve, 100))
@@ -152,6 +156,7 @@ export const useExport = () => {
       const currentCanvas = getCanvas()
       if (currentCanvas) {
         try {
+          console.log(`Capturing frame ${frameCountRef.current + 1}/${maxFramesRef.current}`)
           // Convert WebGL canvas to 2D canvas and store it
           const canvas2D = convertCanvasTo2D(currentCanvas)
           capturedFramesRef.current.push(canvas2D)
@@ -182,6 +187,8 @@ export const useExport = () => {
       timeoutRef.current = null
     }
 
+    console.log(`Creating GIF with ${capturedFramesRef.current.length} frames`)
+    
     if (capturedFramesRef.current.length === 0) {
       console.error('No frames captured for GIF!')
       setIsRecordingGIF(false)
@@ -194,7 +201,9 @@ export const useExport = () => {
       gifshot.createGIF({
         images: capturedFramesRef.current,
         interval: 0.1, // 100ms between frames (10 fps)
+        sampleInterval: gifQualityRef.current,
         progressCallback: (progress) => {
+          console.log('GIF progress:', progress)
           setGifProgress(progress)
         }
       }, (obj) => {
