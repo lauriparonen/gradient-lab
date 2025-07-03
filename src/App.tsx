@@ -7,7 +7,7 @@ import { hueToRGB } from './utils'
 import { useAnimationFrame } from './hooks/useAnimationFrame'
 import { useExport } from './hooks/useExport'
 import { ExportButton } from './components/ExportButton'
-import { ColorPaletteUploader } from './components/ColorPaletteUploader'
+import { Header } from './components/Header'
 
 // Resolution presets
 const RESOLUTION_PRESETS = {
@@ -230,75 +230,78 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen w-full flex flex-col items-center justify-center gap-4"
+      className="min-h-screen w-full flex flex-col"
       style={{ backgroundColor: '#000000' }}
     >
-      <div 
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        className="relative rounded-lg overflow-hidden"
-        style={{ 
-          width: canvasDimensions.width, 
-          height: canvasDimensions.height,
-          maxWidth: '90vw',
-          maxHeight: '70vh',
-          touchAction: 'none'
-        }}
-      >
-        <Surface 
-          width={canvasDimensions.width} 
-          height={canvasDimensions.height} 
-          ref={surfaceRef}
-          webglContextAttributes={{ preserveDrawingBuffer: true }}
-        >
-          <Node
-            shader={GrainyGradientShader.GrainyGrad}
-            uniforms={{
-              time,
-              colorA: hueToRGB(hue1, brightness1),
-              colorB: hueToRGB(hue2, brightness2),
-              colorC: hueToRGB(hue3, brightness3),
-              grain,
-              scale,
-              speed,
-              mouse: mousePos,
-              trailPositions,
-              trailAges,
-              resolution: [canvasDimensions.width, canvasDimensions.height],
-              rippleSpeed,
-              rippleWidth,
-              rippleLifetime,
-              rippleStrength,
-              rippleFrequency
-            }}
-          />
-        </Surface>
-      </div>
+      {/* Header */}
+      <Header onPaletteExtracted={handlePaletteExtracted} />
       
-      <div className="flex flex-col items-center gap-2">
-        <div className="text-gray-400 text-sm text-center">
-          <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-8">
+        <div 
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          className="relative rounded-lg overflow-hidden"
+          style={{ 
+            width: canvasDimensions.width, 
+            height: canvasDimensions.height,
+            maxWidth: '90vw',
+            maxHeight: '70vh',
+            touchAction: 'none'
+          }}
+        >
+          <Surface 
+            width={canvasDimensions.width} 
+            height={canvasDimensions.height} 
+            ref={surfaceRef}
+            webglContextAttributes={{ preserveDrawingBuffer: true }}
+          >
+            <Node
+              shader={GrainyGradientShader.GrainyGrad}
+              uniforms={{
+                time,
+                colorA: hueToRGB(hue1, brightness1),
+                colorB: hueToRGB(hue2, brightness2),
+                colorC: hueToRGB(hue3, brightness3),
+                grain,
+                scale,
+                speed,
+                mouse: mousePos,
+                trailPositions,
+                trailAges,
+                resolution: [canvasDimensions.width, canvasDimensions.height],
+                rippleSpeed,
+                rippleWidth,
+                rippleLifetime,
+                rippleStrength,
+                rippleFrequency
+              }}
+            />
+          </Surface>
         </div>
-        <ExportButton 
-          onExportPNG={exportToPNG}
-          onStartGIFRecording={() => startGIFRecording({
-            duration: gifDuration,
-            framerate: gifFramerate,
-            quality: gifQuality
-          })}
-          onCancelGIFRecording={cancelGIFRecording}
-          isExporting={isExporting}
-          isRecordingGIF={isRecordingGIF}
-          gifProgress={gifProgress}
-          gifDuration={gifDuration}
-          gifFramerate={gifFramerate}
-        />
         
-        {/* Color Palette Uploader */}
-        <ColorPaletteUploader onPaletteExtracted={handlePaletteExtracted} />
-        
-        <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-gray-400 text-sm text-center">
+            <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
+          </div>
+          <ExportButton 
+            onExportPNG={exportToPNG}
+            onStartGIFRecording={() => startGIFRecording({
+              duration: gifDuration,
+              framerate: gifFramerate,
+              quality: gifQuality
+            })}
+            onCancelGIFRecording={cancelGIFRecording}
+            isExporting={isExporting}
+            isRecordingGIF={isRecordingGIF}
+            gifProgress={gifProgress}
+            gifDuration={gifDuration}
+            gifFramerate={gifFramerate}
+          />
+          
+          <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
+        </div>
       </div>
     </div>
   )
