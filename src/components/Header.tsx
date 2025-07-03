@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ColorPaletteUploader } from './ColorPaletteUploader'
+import { SavedPalettes } from './SavedPalettes'
 
 interface HeaderProps {
   onPaletteExtracted: (hues: number[]) => void
@@ -8,6 +9,7 @@ interface HeaderProps {
 export function Header({ onPaletteExtracted }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isPaletteDropdownOpen, setIsPaletteDropdownOpen] = useState(false)
+  const [isSavedPalettesOpen, setIsSavedPalettesOpen] = useState(false)
 
   return (
     <>
@@ -60,7 +62,7 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
         </div>
 
         {/* Sidebar Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2">
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {/* Color Palette Feature */}
           <div className="border border-gray-700 rounded-lg overflow-hidden">
             <button
@@ -86,7 +88,7 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
             </button>
             
             {/* Palette Dropdown Content */}
-            <div 
+            <div
               className={`overflow-hidden transition-all duration-300 ease-in-out
                          ${isPaletteDropdownOpen ? 'max-h-[50vh] opacity-100' : 'max-h-0 opacity-0'}`}
             >
@@ -96,6 +98,46 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
                 </p>
                 <div className="max-h-64 overflow-y-auto">
                   <ColorPaletteUploader onPaletteExtracted={onPaletteExtracted} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Saved Palettes Feature */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setIsSavedPalettesOpen(!isSavedPalettesOpen)}
+              className="w-full p-4 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 
+                         transition-all duration-200 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                <span>saved palettes</span>
+              </div>
+              <svg 
+                className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isSavedPalettesOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Saved Palettes Dropdown Content */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out
+                         ${isSavedPalettesOpen ? 'max-h-[50vh] opacity-100' : 'max-h-0 opacity-0'}`}
+            >
+              <div className="p-4 bg-gray-800/30 border-t border-gray-700">
+                <p className="text-sm text-gray-400 mb-3">
+                  manage and apply your saved color palettes
+                </p>
+                <div className="max-h-64 overflow-y-auto">
+                  <SavedPalettes onPaletteApplied={onPaletteExtracted} />
                 </div>
               </div>
             </div>
@@ -121,6 +163,7 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
           onClick={() => {
             setIsSidebarOpen(false)
             setIsPaletteDropdownOpen(false)
+            setIsSavedPalettesOpen(false)
           }}
         />
       )}
