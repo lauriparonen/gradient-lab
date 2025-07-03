@@ -12,7 +12,9 @@
     "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
+    "@types/colorthief": "^2.6.0",
     "@zumer/snapdom": "^1.7.1",
+    "colorthief": "^2.6.0",
     "gifshot": "^0.4.5",
     "gl-react": "^5.2.0",
     "gl-react-dom": "^5.2.1",

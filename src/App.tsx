@@ -7,6 +7,7 @@ import { hueToRGB } from './utils'
 import { useAnimationFrame } from './hooks/useAnimationFrame'
 import { useExport } from './hooks/useExport'
 import { ExportButton } from './components/ExportButton'
+import { Header } from './components/Header'
 
 // Resolution presets
 const RESOLUTION_PRESETS = {
@@ -47,29 +48,58 @@ export default function App() {
   const trailRef = useRef<TrailPoint[]>([])
   const lastUpdateRef = useRef<number>(0)
   
+  // 🎨 Colors Panel
+  const [
+    { 
+      hue1, 
+      hue2, 
+      hue3, 
+      brightness1,
+      brightness2,
+      brightness3
+    },
+    setColors
+  ] = useControls('🎨 Colors', () => ({
+    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'color 1 hue' },
+    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 1 brightness' },
+    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'color 2 hue' },
+    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 2 brightness' },
+    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'color 3 hue' },
+    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 3 brightness' }
+  }))
+
+  // 🎬 Animation Panel
   const { 
-    hue1, 
-    hue2, 
-    hue3, 
-    brightness1,
-    brightness2,
-    brightness3,
-    grain, 
     scale, 
     speed, 
-    resolution,
-    customWidth,
-    customHeight,
+    grain
+  } = useControls('🎬 Animation', {
+    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
+    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
+    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' }
+  })
+
+  // 🌊 Effects Panel
+  const { 
     rippleSpeed,
     rippleWidth,
     rippleLifetime,
     rippleStrength,
-    rippleFrequency,
-    gifDuration,
-    gifFramerate,
-    gifQuality
-  } = useControls({
-    // Resolution controls
+    rippleFrequency
+  } = useControls('🌊 Effects', {
+    rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
+    rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
+    rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
+    rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
+    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' }
+  })
+
+  // 📐 Canvas Panel
+  const { 
+    resolution,
+    customWidth,
+    customHeight
+  } = useControls('📐 Canvas', {
     resolution: { 
       value: 'desktop small' as ResolutionPreset, 
       options: Object.keys(RESOLUTION_PRESETS) as ResolutionPreset[],
@@ -90,35 +120,28 @@ export default function App() {
       step: 1, 
       label: 'custom height',
       render: (get) => get('resolution') === 'custom'
-    },
-    
-    // Colors
-    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'color 1 hue' },
-    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 1 brightness' },
-    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'color 2 hue' },
-    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 2 brightness' },
-    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'color 3 hue' },
-    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 3 brightness' },
-    
-    // Organic complexity controls
-    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
-    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
-    
-    // Grain
-    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' },
-    
-    // Ripple effect controls
-    rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
-    rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
-    rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
-    rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
-    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' },
-    
-    // GIF export controls
+    }
+  })
+
+  // 📤 Export Panel
+  const { 
+    gifDuration,
+    gifFramerate,
+    gifQuality
+  } = useControls('📤 Export', {
     gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
     gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
     gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
   })
+
+  // Handler for applying extracted color palette
+  const handlePaletteExtracted = (hues: number[]) => {
+    setColors({
+      hue1: hues[0] || 200,
+      hue2: hues[1] || 320, 
+      hue3: hues[2] || 60
+    })
+  }
 
   // Get current canvas dimensions
   const canvasDimensions = resolution === 'custom' 
@@ -207,71 +230,78 @@ export default function App() {
 
   return (
     <div 
-      className="min-h-screen w-full flex flex-col items-center justify-center gap-4"
+      className="min-h-screen w-full flex flex-col"
       style={{ backgroundColor: '#000000' }}
     >
-      <div 
-        onMouseMove={handleMouseMove}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        className="relative rounded-lg overflow-hidden"
-        style={{ 
-          width: canvasDimensions.width, 
-          height: canvasDimensions.height,
-          maxWidth: '90vw',
-          maxHeight: '70vh',
-          touchAction: 'none'
-        }}
-      >
-        <Surface 
-          width={canvasDimensions.width} 
-          height={canvasDimensions.height} 
-          ref={surfaceRef}
-          webglContextAttributes={{ preserveDrawingBuffer: true }}
-        >
-          <Node
-            shader={GrainyGradientShader.GrainyGrad}
-            uniforms={{
-              time,
-              colorA: hueToRGB(hue1, brightness1),
-              colorB: hueToRGB(hue2, brightness2),
-              colorC: hueToRGB(hue3, brightness3),
-              grain,
-              scale,
-              speed,
-              mouse: mousePos,
-              trailPositions,
-              trailAges,
-              resolution: [canvasDimensions.width, canvasDimensions.height],
-              rippleSpeed,
-              rippleWidth,
-              rippleLifetime,
-              rippleStrength,
-              rippleFrequency
-            }}
-          />
-        </Surface>
-      </div>
+      {/* Header */}
+      <Header onPaletteExtracted={handlePaletteExtracted} />
       
-      <div className="flex flex-col items-center gap-2">
-        <div className="text-gray-400 text-sm text-center">
-          <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-8">
+        <div 
+          onMouseMove={handleMouseMove}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          className="relative rounded-lg overflow-hidden"
+          style={{ 
+            width: canvasDimensions.width, 
+            height: canvasDimensions.height,
+            maxWidth: '90vw',
+            maxHeight: '70vh',
+            touchAction: 'none'
+          }}
+        >
+          <Surface 
+            width={canvasDimensions.width} 
+            height={canvasDimensions.height} 
+            ref={surfaceRef}
+            webglContextAttributes={{ preserveDrawingBuffer: true }}
+          >
+            <Node
+              shader={GrainyGradientShader.GrainyGrad}
+              uniforms={{
+                time,
+                colorA: hueToRGB(hue1, brightness1),
+                colorB: hueToRGB(hue2, brightness2),
+                colorC: hueToRGB(hue3, brightness3),
+                grain,
+                scale,
+                speed,
+                mouse: mousePos,
+                trailPositions,
+                trailAges,
+                resolution: [canvasDimensions.width, canvasDimensions.height],
+                rippleSpeed,
+                rippleWidth,
+                rippleLifetime,
+                rippleStrength,
+                rippleFrequency
+              }}
+            />
+          </Surface>
         </div>
-        <ExportButton 
-          onExportPNG={exportToPNG}
-          onStartGIFRecording={() => startGIFRecording({
-            duration: gifDuration,
-            framerate: gifFramerate,
-            quality: gifQuality
-          })}
-          onCancelGIFRecording={cancelGIFRecording}
-          isExporting={isExporting}
-          isRecordingGIF={isRecordingGIF}
-          gifProgress={gifProgress}
-          gifDuration={gifDuration}
-          gifFramerate={gifFramerate}
-        />
-        <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
+        
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-gray-400 text-sm text-center">
+            <p>{resolution === 'custom' ? 'Custom' : resolution}: {canvasDimensions.width}×{canvasDimensions.height}</p>
+          </div>
+          <ExportButton 
+            onExportPNG={exportToPNG}
+            onStartGIFRecording={() => startGIFRecording({
+              duration: gifDuration,
+              framerate: gifFramerate,
+              quality: gifQuality
+            })}
+            onCancelGIFRecording={cancelGIFRecording}
+            isExporting={isExporting}
+            isRecordingGIF={isRecordingGIF}
+            gifProgress={gifProgress}
+            gifDuration={gifDuration}
+            gifFramerate={gifFramerate}
+          />
+          
+          <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
+        </div>
       </div>
     </div>
   )
