@@ -7,6 +7,7 @@ import { hueToRGB } from './utils'
 import { useAnimationFrame } from './hooks/useAnimationFrame'
 import { useExport } from './hooks/useExport'
 import { ExportButton } from './components/ExportButton'
+import { ColorPaletteUploader } from './components/ColorPaletteUploader'
 
 // Resolution presets
 const RESOLUTION_PRESETS = {
@@ -47,28 +48,31 @@ export default function App() {
   const trailRef = useRef<TrailPoint[]>([])
   const lastUpdateRef = useRef<number>(0)
   
-  const { 
-    hue1, 
-    hue2, 
-    hue3, 
-    brightness1,
-    brightness2,
-    brightness3,
-    grain, 
-    scale, 
-    speed, 
-    resolution,
-    customWidth,
-    customHeight,
-    rippleSpeed,
-    rippleWidth,
-    rippleLifetime,
-    rippleStrength,
-    rippleFrequency,
-    gifDuration,
-    gifFramerate,
-    gifQuality
-  } = useControls({
+  const [
+    { 
+      hue1, 
+      hue2, 
+      hue3, 
+      brightness1,
+      brightness2,
+      brightness3,
+      grain, 
+      scale, 
+      speed, 
+      resolution,
+      customWidth,
+      customHeight,
+      rippleSpeed,
+      rippleWidth,
+      rippleLifetime,
+      rippleStrength,
+      rippleFrequency,
+      gifDuration,
+      gifFramerate,
+      gifQuality
+    },
+    set
+  ] = useControls(() => ({
     // Resolution controls
     resolution: { 
       value: 'desktop small' as ResolutionPreset, 
@@ -118,7 +122,16 @@ export default function App() {
     gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
     gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
     gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
-  })
+  }))
+
+  // Handler for applying extracted color palette
+  const handlePaletteExtracted = (hues: number[]) => {
+    set({
+      hue1: hues[0] || 200,
+      hue2: hues[1] || 320, 
+      hue3: hues[2] || 60
+    })
+  }
 
   // Get current canvas dimensions
   const canvasDimensions = resolution === 'custom' 
@@ -271,6 +284,10 @@ export default function App() {
           gifDuration={gifDuration}
           gifFramerate={gifFramerate}
         />
+        
+        {/* Color Palette Uploader */}
+        <ColorPaletteUploader onPaletteExtracted={handlePaletteExtracted} />
+        
         <p className="text-gray-400 text-sm">press Ctrl+S to export PNG without moving cursor</p>
       </div>
     </div>
