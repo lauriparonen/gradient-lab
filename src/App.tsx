@@ -48,6 +48,7 @@ export default function App() {
   const trailRef = useRef<TrailPoint[]>([])
   const lastUpdateRef = useRef<number>(0)
   
+  // 🎨 Colors Panel
   const [
     { 
       hue1, 
@@ -55,25 +56,50 @@ export default function App() {
       hue3, 
       brightness1,
       brightness2,
-      brightness3,
-      grain, 
-      scale, 
-      speed, 
-      resolution,
-      customWidth,
-      customHeight,
-      rippleSpeed,
-      rippleWidth,
-      rippleLifetime,
-      rippleStrength,
-      rippleFrequency,
-      gifDuration,
-      gifFramerate,
-      gifQuality
+      brightness3
     },
-    set
-  ] = useControls(() => ({
-    // Resolution controls
+    setColors
+  ] = useControls('🎨 Colors', () => ({
+    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'color 1 hue' },
+    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 1 brightness' },
+    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'color 2 hue' },
+    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 2 brightness' },
+    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'color 3 hue' },
+    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 3 brightness' }
+  }))
+
+  // 🎬 Animation Panel
+  const { 
+    scale, 
+    speed, 
+    grain
+  } = useControls('🎬 Animation', {
+    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
+    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
+    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' }
+  })
+
+  // 🌊 Effects Panel
+  const { 
+    rippleSpeed,
+    rippleWidth,
+    rippleLifetime,
+    rippleStrength,
+    rippleFrequency
+  } = useControls('🌊 Effects', {
+    rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
+    rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
+    rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
+    rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
+    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' }
+  })
+
+  // 📐 Canvas Panel
+  const { 
+    resolution,
+    customWidth,
+    customHeight
+  } = useControls('📐 Canvas', {
     resolution: { 
       value: 'desktop small' as ResolutionPreset, 
       options: Object.keys(RESOLUTION_PRESETS) as ResolutionPreset[],
@@ -94,39 +120,23 @@ export default function App() {
       step: 1, 
       label: 'custom height',
       render: (get) => get('resolution') === 'custom'
-    },
-    
-    // Colors
-    hue1: { value: 200, min: 0, max: 360, step: 1, label: 'color 1 hue' },
-    brightness1: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 1 brightness' },
-    hue2: { value: 320, min: 0, max: 360, step: 1, label: 'color 2 hue' },
-    brightness2: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 2 brightness' },
-    hue3: { value: 60, min: 0, max: 360, step: 1, label: 'color 3 hue' },
-    brightness3: { value: 1.0, min: 0.0, max: 1.0, step: 0.01, label: 'color 3 brightness' },
-    
-    // Organic complexity controls
-    scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
-    speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
-    
-    // Grain
-    grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' },
-    
-    // Ripple effect controls
-    rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
-    rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
-    rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
-    rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
-    rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' },
-    
-    // GIF export controls
+    }
+  })
+
+  // 📤 Export Panel
+  const { 
+    gifDuration,
+    gifFramerate,
+    gifQuality
+  } = useControls('📤 Export', {
     gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
     gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
     gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
-  }))
+  })
 
   // Handler for applying extracted color palette
   const handlePaletteExtracted = (hues: number[]) => {
-    set({
+    setColors({
       hue1: hues[0] || 200,
       hue2: hues[1] || 320, 
       hue3: hues[2] || 60
