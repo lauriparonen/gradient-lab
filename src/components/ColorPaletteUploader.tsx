@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import type { DragEvent } from 'react'
 import { useColorExtraction } from '../hooks/useColorExtraction'
+import { useSavedPalettes } from '../hooks/useSavedPalettes'
 
 interface ColorPaletteUploaderProps {
   onPaletteExtracted: (hues: number[]) => void
@@ -9,9 +10,13 @@ interface ColorPaletteUploaderProps {
 export const ColorPaletteUploader = ({ onPaletteExtracted }: ColorPaletteUploaderProps) => {
   const [isDragOver, setIsDragOver] = useState(false)
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [showSaveDialog, setShowSaveDialog] = useState(false)
+  const [paletteName, setPaletteName] = useState('')
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   
   const { extractColorsFromImage, isExtracting, lastExtractedPalette } = useColorExtraction()
+  const { savePalette } = useSavedPalettes()
 
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault()
@@ -63,12 +68,51 @@ export const ColorPaletteUploader = ({ onPaletteExtracted }: ColorPaletteUploade
     }
   }
 
+  const handleSavePalette = () => {
+    setShowSaveDialog(true)
+    setPaletteName(`Palette ${new Date().toLocaleDateString()}`)
+  }
+
+  const confirmSavePalette = () => {
+    if (lastExtractedPalette && paletteName.trim()) {
+      savePalette(
+        lastExtractedPalette.colors,
+        lastExtractedPalette.hues,
+        paletteName.trim(),
+        uploadedImage || undefined
+      )
+      setShowSaveDialog(false)
+      setPaletteName('')
+      
+      // Show success toast
+      setShowSuccessToast(true)
+      setTimeout(() => setShowSuccessToast(false), 3000)
+    }
+  }
+
+  const cancelSavePalette = () => {
+    setShowSaveDialog(false)
+    setPaletteName('')
+  }
+
   const handleUploadClick = () => {
     fileInputRef.current?.click()
   }
 
   return (
     <div className="w-full max-w-md mx-auto p-4">
+      {/* Success Toast */}
+      {showSuccessToast && (
+        <div className="fixed top-4 right-4 z-50 transform transition-all duration-300 ease-in-out">
+          <div className="bg-green-700 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <span className="text-sm">Palette saved successfully!</span>
+          </div>
+        </div>
+      )}
+
       {/* Upload Area */}
       <div
         className={`
@@ -142,20 +186,81 @@ export const ColorPaletteUploader = ({ onPaletteExtracted }: ColorPaletteUploade
             ))}
           </div>
           
-          {/* Apply Button */}
-          <button
-            onClick={applyPalette}
-            className="
-              w-full py-2 px-4
-              bg-blue-700 hover:bg-blue-800
-              text-white text-sm font-medium
-              rounded-lg
-              transition-colors duration-200
-              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
-            "
-          >
-            apply palette to gradient
-          </button>
+          {/* Action Buttons */}
+          <div className="flex gap-2">
+            <button
+              onClick={applyPalette}
+              className="
+                flex-1 py-2 px-4
+                bg-blue-700 hover:bg-blue-800
+                text-white text-sm font-medium
+                rounded-lg
+                transition-colors duration-200
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
+              "
+            >
+              apply to gradient
+            </button>
+            <button
+              onClick={handleSavePalette}
+              className="
+                px-4 py-2
+                bg-gray-700 hover:bg-gray-600
+                text-white text-sm font-medium
+                rounded-lg
+                transition-colors duration-200
+                focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-gray-900
+              "
+              title="Save palette"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                      d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Save Dialog */}
+          {showSaveDialog && (
+            <div className="border border-gray-600 rounded-lg p-3 bg-gray-800/50">
+              <h4 className="text-sm font-medium text-gray-300 mb-2">Save Palette</h4>
+              <input
+                type="text"
+                value={paletteName}
+                onChange={(e) => setPaletteName(e.target.value)}
+                placeholder="Enter palette name..."
+                className="w-full px-3 py-2 mb-3 bg-gray-700 text-white text-sm rounded border border-gray-600 focus:border-blue-500 focus:outline-none"
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  onClick={confirmSavePalette}
+                  disabled={!paletteName.trim()}
+                  className="
+                    flex-1 py-1.5 px-3
+                    bg-green-700 hover:bg-green-800 disabled:bg-gray-700 disabled:opacity-50
+                    text-white text-xs font-medium
+                    rounded
+                    transition-colors duration-200
+                  "
+                >
+                  save
+                </button>
+                <button
+                  onClick={cancelSavePalette}
+                  className="
+                    flex-1 py-1.5 px-3
+                    bg-gray-700 hover:bg-gray-600
+                    text-white text-xs font-medium
+                    rounded
+                    transition-colors duration-200
+                  "
+                >
+                  cancel
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
