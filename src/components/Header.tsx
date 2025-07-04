@@ -1,15 +1,32 @@
 import { useState } from 'react'
 import { ColorPaletteUploader } from './ColorPaletteUploader'
 import { SavedPalettes } from './SavedPalettes'
+import { SavedPresets } from './SavedPresets'
+import type { AppPreset } from '../hooks/usePresets'
 
 interface HeaderProps {
   onPaletteExtracted: (hues: number[]) => void
+  onPresetApplied: (preset: AppPreset) => void
+  onSaveCurrentPreset: (name?: string) => void
+  savedPresets: AppPreset[]
+  onDeletePreset: (id: string) => void
+  onRenamePreset: (id: string, newName: string) => void
+  onClearAllPresets: () => void
 }
 
-export function Header({ onPaletteExtracted }: HeaderProps) {
+export function Header({ 
+  onPaletteExtracted, 
+  onPresetApplied, 
+  onSaveCurrentPreset,
+  savedPresets,
+  onDeletePreset,
+  onRenamePreset,
+  onClearAllPresets
+}: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [isPaletteDropdownOpen, setIsPaletteDropdownOpen] = useState(false)
   const [isSavedPalettesOpen, setIsSavedPalettesOpen] = useState(false)
+  const [isSavedPresetsOpen, setIsSavedPresetsOpen] = useState(false)
 
   return (
     <>
@@ -143,6 +160,53 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
             </div>
           </div>
 
+          {/* Saved Presets Feature */}
+          <div className="border border-gray-700 rounded-lg overflow-hidden">
+            <button
+              onClick={() => setIsSavedPresetsOpen(!isSavedPresetsOpen)}
+              className="w-full p-4 text-left text-gray-300 hover:text-white hover:bg-gray-800/50 
+                         transition-all duration-200 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>saved presets</span>
+              </div>
+              <svg 
+                className={`w-4 h-4 flex-shrink-0 transition-transform duration-200 ${isSavedPresetsOpen ? 'rotate-180' : ''}`} 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Saved Presets Dropdown Content */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out
+                         ${isSavedPresetsOpen ? 'max-h-[50vh] opacity-100' : 'max-h-0 opacity-0'}`}
+            >
+              <div className="p-4 bg-gray-800/30 border-t border-gray-700">
+                <p className="text-sm text-gray-400 mb-3">
+                  save and restore complete app configurations
+                </p>
+                <div className="max-h-64 overflow-y-auto">
+                  <SavedPresets 
+                    onPresetApplied={onPresetApplied}
+                    onSaveCurrentPreset={onSaveCurrentPreset}
+                    savedPresets={savedPresets}
+                    onDeletePreset={onDeletePreset}
+                    onRenamePreset={onRenamePreset}
+                    onClearAllPresets={onClearAllPresets}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Placeholder for future features */}
           <div className="border border-gray-700 rounded-lg overflow-hidden opacity-50">
             <div className="w-full p-4 text-left text-gray-500 flex items-center gap-3">
@@ -164,6 +228,7 @@ export function Header({ onPaletteExtracted }: HeaderProps) {
             setIsSidebarOpen(false)
             setIsPaletteDropdownOpen(false)
             setIsSavedPalettesOpen(false)
+            setIsSavedPresetsOpen(false)
           }}
         />
       )}

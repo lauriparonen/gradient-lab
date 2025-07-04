@@ -1,11 +1,12 @@
 import { Surface } from 'gl-react-dom'
 import { Node } from 'gl-react'
 import { useControls } from 'leva'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { GrainyGradientShader } from './shaders'
 import { hueToRGB } from './utils'
 import { useAnimationFrame } from './hooks/useAnimationFrame'
 import { useExport } from './hooks/useExport'
+import { usePresets, type AppPreset } from './hooks/usePresets'
 import { ExportButton } from './components/ExportButton'
 import { Header } from './components/Header'
 
@@ -44,6 +45,7 @@ export default function App() {
     startGIFRecording,
     cancelGIFRecording
   } = useExport()
+  const { savedPresets, savePreset, deletePreset, renamePreset, clearAllPresets } = usePresets()
   const [mousePos, setMousePos] = useState<[number, number]>([0.5, 0.5])
   const trailRef = useRef<TrailPoint[]>([])
   const lastUpdateRef = useRef<number>(0)
@@ -69,37 +71,46 @@ export default function App() {
   }))
 
   // 🎬 Animation Panel
-  const { 
-    scale, 
-    speed, 
-    grain
-  } = useControls('🎬 Animation', {
+  const [
+    { 
+      scale, 
+      speed, 
+      grain
+    },
+    setAnimation
+  ] = useControls('🎬 Animation', () => ({
     scale: { value: 2.0, min: 0.5, max: 5.0, step: 0.1, label: 'noise scale' },
     speed: { value: 0.3, min: 0.0, max: 2.0, step: 0.1, label: 'animation speed' },
     grain: { value: 0.05, min: 0, max: 0.2, step: 0.01, label: 'grain' }
-  })
+  }))
 
   // 🌊 Effects Panel
-  const { 
-    rippleSpeed,
-    rippleWidth,
-    rippleLifetime,
-    rippleStrength,
-    rippleFrequency
-  } = useControls('🌊 Effects', {
+  const [
+    { 
+      rippleSpeed,
+      rippleWidth,
+      rippleLifetime,
+      rippleStrength,
+      rippleFrequency
+    },
+    setEffects
+  ] = useControls('🌊 Effects', () => ({
     rippleSpeed: { value: 0.4, min: 0.1, max: 1.0, step: 0.01, label: 'ripple expansion speed' },
     rippleWidth: { value: 0.08, min: 0.02, max: 0.2, step: 0.01, label: 'ripple width' },
     rippleLifetime: { value: 3.0, min: 1.0, max: 8.0, step: 0.1, label: 'ripple lifetime' },
     rippleStrength: { value: 0.3, min: 0.0, max: 1.0, step: 0.01, label: 'ripple strength' },
     rippleFrequency: { value: 20.0, min: 5.0, max: 50.0, step: 1.0, label: 'ripple frequency' }
-  })
+  }))
 
   // 📐 Canvas Panel
-  const { 
-    resolution,
-    customWidth,
-    customHeight
-  } = useControls('📐 Canvas', {
+  const [
+    { 
+      resolution,
+      customWidth,
+      customHeight
+    },
+    setCanvas
+  ] = useControls('📐 Canvas', () => ({
     resolution: { 
       value: 'desktop small' as ResolutionPreset, 
       options: Object.keys(RESOLUTION_PRESETS) as ResolutionPreset[],
@@ -121,18 +132,103 @@ export default function App() {
       label: 'custom height',
       render: (get) => get('resolution') === 'custom'
     }
-  })
+  }))
 
   // 📤 Export Panel
-  const { 
-    gifDuration,
-    gifFramerate,
-    gifQuality
-  } = useControls('📤 Export', {
+  const [
+    { 
+      gifDuration,
+      gifFramerate,
+      gifQuality
+    },
+    setExportSettings
+  ] = useControls('📤 Export', () => ({
     gifDuration: { value: 2, min: 1, max: 10, step: 0.5, label: 'GIF duration (seconds)' },
     gifFramerate: { value: 10, min: 5, max: 30, step: 1, label: 'GIF framerate (fps)' },
     gifQuality: { value: 15, min: 1, max: 30, step: 1, label: 'GIF quality (lower = better)' }
-  })
+  }))
+
+  // Capture current settings for preset saving
+  const getCurrentSettings = useCallback((): AppPreset['settings'] => ({
+    colors: {
+      hue1,
+      hue2,
+      hue3,
+      brightness1,
+      brightness2,
+      brightness3
+    },
+    animation: {
+      scale,
+      speed,
+      grain
+    },
+    effects: {
+      rippleSpeed,
+      rippleWidth,
+      rippleLifetime,
+      rippleStrength,
+      rippleFrequency
+    },
+    canvas: {
+      resolution,
+      customWidth,
+      customHeight
+    },
+    export: {
+      gifDuration,
+      gifFramerate,
+      gifQuality
+    }
+  }), [
+    hue1, hue2, hue3, brightness1, brightness2, brightness3,
+    scale, speed, grain,
+    rippleSpeed, rippleWidth, rippleLifetime, rippleStrength, rippleFrequency,
+    resolution, customWidth, customHeight,
+    gifDuration, gifFramerate, gifQuality
+  ])
+
+  // Apply a preset to all controls
+  const applyPreset = useCallback((preset: AppPreset) => {
+    const { settings } = preset
+    
+    setColors({
+      hue1: settings.colors.hue1,
+      hue2: settings.colors.hue2,
+      hue3: settings.colors.hue3,
+      brightness1: settings.colors.brightness1,
+      brightness2: settings.colors.brightness2,
+      brightness3: settings.colors.brightness3
+    })
+    
+    setAnimation({
+      scale: settings.animation.scale,
+      speed: settings.animation.speed,
+      grain: settings.animation.grain
+    })
+    
+    setEffects({
+      rippleSpeed: settings.effects.rippleSpeed,
+      rippleWidth: settings.effects.rippleWidth,
+      rippleLifetime: settings.effects.rippleLifetime,
+      rippleStrength: settings.effects.rippleStrength,
+      rippleFrequency: settings.effects.rippleFrequency
+    })
+    
+    setCanvas({
+      resolution: settings.canvas.resolution as ResolutionPreset,
+      customWidth: settings.canvas.customWidth,
+      customHeight: settings.canvas.customHeight
+    })
+    
+    if (settings.export) {
+      setExportSettings({
+        gifDuration: settings.export.gifDuration,
+        gifFramerate: settings.export.gifFramerate,
+        gifQuality: settings.export.gifQuality
+      })
+    }
+  }, [setColors, setAnimation, setEffects, setCanvas, setExportSettings])
 
   // Handler for applying extracted color palette
   const handlePaletteExtracted = (hues: number[]) => {
@@ -141,6 +237,12 @@ export default function App() {
       hue2: hues[1] || 320, 
       hue3: hues[2] || 60
     })
+  }
+
+  // Handler for saving current preset
+  const handleSavePreset = (name?: string) => {
+    const currentSettings = getCurrentSettings()
+    return savePreset(currentSettings, name)
   }
 
   // Get current canvas dimensions
@@ -234,7 +336,15 @@ export default function App() {
       style={{ backgroundColor: '#000000' }}
     >
       {/* Header */}
-      <Header onPaletteExtracted={handlePaletteExtracted} />
+      <Header 
+        onPaletteExtracted={handlePaletteExtracted}
+        onPresetApplied={applyPreset}
+        onSaveCurrentPreset={handleSavePreset}
+        savedPresets={savedPresets}
+        onDeletePreset={deletePreset}
+        onRenamePreset={renamePreset}
+        onClearAllPresets={clearAllPresets}
+      />
       
       {/* Main Content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-4 px-4 py-8">
